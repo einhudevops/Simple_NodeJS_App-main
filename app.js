@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 
 // Optional: test endpoint
 app.get('/hello', (req, res) => {
-  res.send('👋 Hello, World! Welcome to Einhu 0000 YouTube Channel.');
+  res.send('👋 Hello, World! Welcome to Einhu YouTube Channel.');
 });
 
 // Bind to 0.0.0.0 for external access
