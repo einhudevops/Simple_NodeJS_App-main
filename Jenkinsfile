@@ -60,13 +60,13 @@ pipeline {
                 sh 'kubectl get nodes'
             }
         }
-    stages {
+
         stage('Check K8s Pods') {
             steps {
                 sh 'kubectl get pods'
             }
         }
-	
+
         stage('Install Node.js Dependencies') {
             steps {
                 sh 'npm install'
@@ -85,6 +85,4 @@ pipeline {
         failure { echo '❌ Build or test failed.' }
     }
 }
-
-
 
