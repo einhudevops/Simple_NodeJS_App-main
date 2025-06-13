@@ -1,10 +1,11 @@
 pipeline {
     agent any
-
+    tools {
+        nodejs 'NodeJS'
+    }
     environment {
-        IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
-        IMAGE_TAG = "latest"
-        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+        SONAR_PROJECT_KEY = 'node'
+        SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
     }
 
     stages {
@@ -13,53 +14,35 @@ pipeline {
                 sh 'kubectl get nodes'
             }
         }
-
-        stage('Check K8s Pods') {
-            steps {
-                sh 'kubectl get pods'
-            }
+        stage('Install Deps') {
+            steps { sh 'npm install' }
         }
-
-        stage('Install Node.js Dependencies') {
-            steps {
-                sh 'npm install'
-            }
+        stage('Tests') {
+            steps { sh 'npm test' }
         }
-
-        stage('Run Tests') {
+        stage('SonarQube Analysis') {
             steps {
-                sh 'npm test'
-            }
-        }
-
-        stage('Build and Push Image (Buildah)') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
-                    sh '''
-                        echo "$REG_PASS" | buildah login -u "$REG_USER" --password-stdin docker.io
-                        buildah bud -t $FULL_IMAGE .
-                        buildah push $FULL_IMAGE
-                    '''
+                withCredentials([string(credentialsId: 'node-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                          ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                          -Dsonar.sources=. \
+                          -Dsonar.host.url=http://192.168.1.128:9000 \
+                          -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
                 }
             }
         }
-
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-                    kubectl apply -f k8s/deployment.yaml
+                  kubectl apply -f k8s/deployment.yaml
+                  kubectl apply -f k8s/service.yaml
                 '''
             }
         }
     }
-
-    post {
-        success {
-            echo '✅ Buildah image built, pushed, and deployed to Kubernetes.'
-        }
-        failure {
-            echo '❌ Something failed during the pipeline.'
-        }
-    }
 }
+
