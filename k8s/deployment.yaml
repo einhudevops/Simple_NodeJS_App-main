@@ -3,11 +3,11 @@ kind: Deployment
 metadata:
   name: nodejs-app
 spec:
-  replicas: 2  # Increased to 2 for high availability
+  replicas: 2  # High availability
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0       # Ensure at least 1 pod stays available
+      maxUnavailable: 0       # Ensure no downtime
       maxSurge: 1             # Allow 1 extra pod during update
   selector:
     matchLabels:
@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: nodejs-app
-          image: bhonebhone/simple-nodejs-app:latest
-          imagePullPolicy: Always  # Always pull latest image
+          image: bhonebhone/simple-nodejs-app:__TAG__  # Dynamic tag to be replaced by Jenkins
+          imagePullPolicy: Always
           ports:
             - containerPort: 3000
