@@ -3,7 +3,12 @@ kind: Deployment
 metadata:
   name: nodejs-app
 spec:
-  replicas: 1
+  replicas: 2  # Increased to 2 for high availability
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0       # Ensure at least 1 pod stays available
+      maxSurge: 1             # Allow 1 extra pod during update
   selector:
     matchLabels:
       app: nodejs-app
@@ -15,5 +20,6 @@ spec:
       containers:
         - name: nodejs-app
           image: bhonebhone/simple-nodejs-app:latest
+          imagePullPolicy: Always  # Always pull latest image
           ports:
             - containerPort: 3000
