@@ -32,13 +32,13 @@ pipeline {
             }
         }
 
-        stage('Build and Push Image (Buildah)') {
+        stage('Build and Push Image (Buildah with sudo)') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
                     sh '''
-                        echo "$REG_PASS" | buildah login -u "$REG_USER" --password-stdin docker.io
-                        buildah --isolation=chroot bud -t $FULL_IMAGE .
-                        buildah push $FULL_IMAGE
+                        echo "$REG_PASS" | sudo buildah login -u "$REG_USER" --password-stdin docker.io
+                        sudo buildah bud -t $FULL_IMAGE .
+                        sudo buildah push $FULL_IMAGE
                     '''
                 }
             }
