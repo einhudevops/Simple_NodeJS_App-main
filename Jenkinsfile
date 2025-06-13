@@ -54,41 +54,31 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS'
-    }
-
     stages {
         stage('Check K8s Connection') {
             steps {
-                echo 'Checking Kubernetes cluster access...'
                 sh 'kubectl get nodes'
             }
         }
 
         stage('Install Node.js Dependencies') {
             steps {
-                echo 'Installing npm dependencies...'
                 sh 'npm install'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo 'Running unit tests...'
                 sh 'npm test'
             }
         }
     }
 
     post {
-        success {
-            echo '✅ Build and tests succeeded.'
-        }
-        failure {
-            echo '❌ Build or tests failed.'
-        }
+        success { echo '✅ Build and test succeeded.' }
+        failure { echo '❌ Build or test failed.' }
     }
 }
+
 
 
