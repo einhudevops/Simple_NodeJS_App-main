@@ -50,6 +50,7 @@ pipeline {
                     sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
                     kubectl apply -f k8s/deployment.yaml
                     kubectl apply -f k8s/service.yaml
+                    kubectl rollout restart deployment/nodejs-app
                 '''
             }
         }
