@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'bhone121212/simple-nodejs-app'
+        IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
         IMAGE_TAG = "latest"
         FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
                     sh '''
-                        echo "$REG_PASS" | sudo buildah login -u "$REG_USER" --password-stdin docker.io
+                        echo "$REG_PASS" | sudo -S buildah login -u "$REG_USER" --password-stdin docker.io
                         sudo buildah bud -t $FULL_IMAGE .
                         sudo buildah push $FULL_IMAGE
                     '''
