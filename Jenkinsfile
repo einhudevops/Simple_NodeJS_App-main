@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
+        GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
-        IMAGE_TAG = "latest"
+        IMAGE_TAG = "${GIT_COMMIT}"  // unique tag per commit
         FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
