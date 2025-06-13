@@ -1,101 +1,65 @@
-// pipeline {
-// 	agent any
-// 	tools {
-// 		nodejs 'NodeJS'
-// 	}
-// 	environment {
-// 		SONAR_PROJECT_KEY = 'node'
-// 		SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
-// 	}
-
-// 	stages {
-// 		stage('Checkout Github'){
-// 			steps {
-// 				git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/iQuantC/Simple_NodeJS_App.git'
-// 			}
-// 		}
-		
-// 		stage('Install node dependencies'){
-// 			steps {
-// 				sh 'npm install'
-// 			}
-// 		}
-// 		stage('Tests'){
-// 			steps {
-// 				sh 'npm test'
-// 			}
-// 		}
-// 		stage('SonarQube Analysis'){
-// 			steps {
-// 				withCredentials([string(credentialsId: 'node-token', variable: 'SONAR_TOKEN')]) {
-				   
-// 					withSonarQubeEnv('SonarQube') {
-// 						sh """
-//                   				${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-//                   				-Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-//                     				-Dsonar.sources=. \
-//                    				-Dsonar.host.url=http://192.168.1.128:9000 \
-//                     				-Dsonar.login=${SONAR_TOKEN}
-//                     				"""
-// 					}	
-// 				}
-// 			}
-// 		}
-// 	}
-// 	post {
-// 		success {
-// 			echo 'Build completed succesfully!'
-// 		}
-// 		failure {
-// 			echo 'Build failed. Check logs.'
-// 		}
-// 	}
-// }
-
 pipeline {
     agent any
-    tools {
-        nodejs 'NodeJS'
-    }
+
     environment {
-        SONAR_PROJECT_KEY = 'node'
-        SONAR_SCANNER_HOME = tool 'SonarQubeScanner'
+        IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
+        IMAGE_TAG = "latest"
+        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Check K8s Connection') {
             steps {
-                git branch: 'main', credentialsId: 'github-cred', url: 'https://github.com/your/repo.git'
+                sh 'kubectl get nodes'
             }
         }
-        stage('Install Deps') {
-            steps { sh 'npm install' }
-        }
-        stage('Tests') {
-            steps { sh 'npm test' }
-        }
-        stage('SonarQube Analysis') {
+
+        stage('Check K8s Pods') {
             steps {
-                withCredentials([string(credentialsId: 'node-token', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube') {
-                        sh """
-                          ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
-                          -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                          -Dsonar.sources=. \
-                          -Dsonar.host.url=http://192.168.1.128:9000 \
-                          -Dsonar.login=${SONAR_TOKEN}
-                        """
-                    }
+                sh 'kubectl get pods'
+            }
+        }
+
+        stage('Install Node.js Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build and Push Image (Buildah)') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
+                    sh '''
+                        echo "$REG_PASS" | buildah login -u "$REG_USER" --password-stdin docker.io
+                        buildah bud -t $FULL_IMAGE .
+                        buildah push $FULL_IMAGE
+                    '''
                 }
             }
         }
+
         stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                  kubectl apply -f k8s/deployment.yaml
-                  kubectl apply -f k8s/service.yaml
+                    sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
+                    kubectl apply -f k8s/deployment.yaml
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Buildah image built, pushed, and deployed to Kubernetes.'
+        }
+        failure {
+            echo '❌ Something failed during the pipeline.'
         }
     }
 }
