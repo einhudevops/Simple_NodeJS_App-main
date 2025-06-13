@@ -37,7 +37,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
                     sh '''
                         echo "$REG_PASS" | buildah login -u "$REG_USER" --password-stdin docker.io
-                        buildah bud -t $FULL_IMAGE .
+                        buildah --isolation=chroot bud -t $FULL_IMAGE .
                         buildah push $FULL_IMAGE
                     '''
                 }
