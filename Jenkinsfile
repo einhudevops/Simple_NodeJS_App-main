@@ -4,8 +4,9 @@ pipeline {
     environment {
         GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
-        IMAGE_TAG = "${GIT_COMMIT}"  // unique tag per commit
+        IMAGE_TAG = "${GIT_COMMIT}"
         FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+        K8S_NAMESPACE = "nodejs-app-ns"
     }
 
     stages {
@@ -15,9 +16,11 @@ pipeline {
             }
         }
 
-        stage('Check K8s Pods') {
+        stage('Ensure Namespace Exists') {
             steps {
-                sh 'kubectl get pods'
+                sh '''
+                    kubectl get namespace $K8S_NAMESPACE || kubectl create namespace $K8S_NAMESPACE
+                '''
             }
         }
 
@@ -49,9 +52,9 @@ pipeline {
             steps {
                 sh '''
                     sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    kubectl rollout restart deployment/nodejs-app
+                    kubectl apply -n $K8S_NAMESPACE -f k8s/deployment.yaml
+                    kubectl apply -n $K8S_NAMESPACE -f k8s/service.yaml
+                    kubectl rollout restart deployment/nodejs-app -n $K8S_NAMESPACE
                 '''
             }
         }
@@ -59,10 +62,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Buildah image built, pushed, and deployed to Kubernetes.'
+            echo '✅ Deployed to Kubernetes namespace successfully.'
         }
         failure {
-            echo '❌ Something failed during the pipeline.'
+            echo '❌ Deployment failed.'
         }
     }
 }

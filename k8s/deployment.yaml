@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nodejs-app
+  namespace: nodejs-app-ns  # ✅ Specify the namespace here
 spec:
   replicas: 2  # High availability
   strategy:
@@ -19,7 +20,8 @@ spec:
     spec:
       containers:
         - name: nodejs-app
-          image: bhonebhone/simple-nodejs-app:__TAG__  # Dynamic tag to be replaced by Jenkins
+          image: bhonebhone/simple-nodejs-app:__TAG__  # Placeholder tag replaced by Jenkins
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+
