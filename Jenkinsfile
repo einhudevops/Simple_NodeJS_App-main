@@ -16,10 +16,9 @@ pipeline {
         stage('Set Image Tag') {
             steps {
                 script {
-                    GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE_TAG = "${GIT_COMMIT}"
-                    FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
-                    env.FULL_IMAGE = FULL_IMAGE
+                    def commit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = commit
+                    env.FULL_IMAGE = "${IMAGE_NAME}:${commit}"
                 }
             }
         }
@@ -32,7 +31,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'npm test || true' // Skip failure for "no test specified"
+                sh 'npm test || true' // Avoid fail due to no test
             }
         }
 
@@ -48,16 +47,16 @@ pipeline {
             }
         }
 
-        stage('Update Deployment YAML and Push to GitHub') {
+        stage('Update YAML and Push to GitHub (Trigger ArgoCD)') {
             steps {
                 withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
                     sh '''
                         sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
 
-                        git config user.email "jenkins@ci.local"
-                        git config user.name "Jenkins CI"
+                        git config --global user.email "jenkins@ci.local"
+                        git config --global user.name "Jenkins CI"
 
-                        git checkout -B main
+                        git checkout main || git checkout -b main
                         git add k8s/deployment.yaml
                         git commit -m "Update image to $FULL_IMAGE" || echo "No changes to commit"
                         git remote set-url origin https://$GITHUB_TOKEN@github.com/bhone121212/Simple_NodeJS_App-main.git
