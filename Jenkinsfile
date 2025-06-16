@@ -31,7 +31,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'npm test || true' // Avoid fail due to no test
+                sh 'npm test || true' // allow build to continue even if no tests
             }
         }
 
@@ -56,11 +56,10 @@ pipeline {
                         git config --global user.email "jenkins@ci.local"
                         git config --global user.name "Jenkins CI"
 
-                        git checkout main || git checkout -b main
                         git add k8s/deployment.yaml
                         git commit -m "Update image to $FULL_IMAGE" || echo "No changes to commit"
                         git remote set-url origin https://$GITHUB_TOKEN@github.com/bhone121212/Simple_NodeJS_App-main.git
-                        git push origin main
+                        git push origin HEAD:main
                     '''
                 }
             }
