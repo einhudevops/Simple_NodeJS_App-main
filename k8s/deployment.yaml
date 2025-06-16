@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: nodejs-app
-          image: bhonebhone/simple-nodejs-app:__TAG__  # Placeholder tag replaced by Jenkins
+          image: bhonebhone/simple-nodejs-app:c14c53f
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
