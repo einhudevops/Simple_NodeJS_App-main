@@ -2,25 +2,18 @@ pipeline {
     agent any
 
     environment {
-        GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
-        IMAGE_TAG = "${GIT_COMMIT}"
-        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
         K8S_NAMESPACE = "nodejs-app-ns"
     }
 
     stages {
-        stage('Check K8s Connection') {
+        stage('Set Image Tag') {
             steps {
-                sh 'kubectl get nodes'
-            }
-        }
-
-        stage('Ensure Namespace Exists') {
-            steps {
-                sh '''
-                    kubectl get namespace $K8S_NAMESPACE || kubectl create namespace $K8S_NAMESPACE
-                '''
+                script {
+                    env.GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = "${env.GIT_COMMIT}"
+                    env.FULL_IMAGE = "${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                }
             }
         }
 
@@ -36,7 +29,7 @@ pipeline {
             }
         }
 
-        stage('Build and Push Image (Buildah with sudo)') {
+        stage('Build & Push Docker Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'REG_USER', passwordVariable: 'REG_PASS')]) {
                     sh '''
@@ -48,13 +41,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Update Deployment YAML and Push to GitHub') {
             steps {
                 sh '''
                     sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-                    kubectl apply -n $K8S_NAMESPACE -f k8s/deployment.yaml
-                    kubectl apply -n $K8S_NAMESPACE -f k8s/service.yaml
-                    kubectl rollout restart deployment/nodejs-app -n $K8S_NAMESPACE
+
+                    git config user.email "jenkins@ci.local"
+                    git config user.name "Jenkins CI"
+                    git add k8s/deployment.yaml
+                    git commit -m "Update image to $FULL_IMAGE"
+                    git push origin main
                 '''
             }
         }
@@ -62,10 +58,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployed to Kubernetes namespace successfully.'
+            echo '✅ Image built, pushed, and GitHub updated. Argo CD will sync automatically.'
         }
         failure {
-            echo '❌ Deployment failed.'
+            echo '❌ Pipeline failed.'
         }
     }
 }
