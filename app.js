@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>✅ Node.js App is Running on Kubernetes!</h1>
+          <h1>✅ Node.js App is Running on Kubernetes! and CI/CD Pipeline Jenkins and Argo Successfully work!!!!!</h1>
           <p>Visit <code>/hello</code> for a friendly greeting!</p>
         </div>
       </body>
@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 
 // Optional: test endpoint
 app.get('/hello', (req, res) => {
-  res.send('👋 Hello, World! Welcome to BhoneMyat22222222 YouTube Channel.');
+  res.send('👋 Hello, World! Welcome to BhoneMyatKyaw YouTube Channel.');
 });
 
 // Bind to 0.0.0.0 for external access
