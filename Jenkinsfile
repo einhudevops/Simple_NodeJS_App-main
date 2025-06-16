@@ -9,22 +9,17 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                checkout([$class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[
-                        url: 'https://github.com/bhone121212/Simple_NodeJS_App-main.git',
-                        credentialsId: 'github-cred'
-                    ]]
-                ])
+                checkout scm
             }
         }
 
         stage('Set Image Tag') {
             steps {
                 script {
-                    env.GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.IMAGE_TAG = "${GIT_COMMIT}"
-                    env.FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+                    GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    IMAGE_TAG = "${GIT_COMMIT}"
+                    FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
+                    env.FULL_IMAGE = FULL_IMAGE
                 }
             }
         }
@@ -37,7 +32,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'npm test || true'  // avoid failure if test is not defined
+                sh 'npm test || true' // Skip failure for "no test specified"
             }
         }
 
@@ -75,7 +70,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ CI pipeline complete. Argo CD will deploy the latest image.'
+            echo '✅ CI/CD Pipeline executed successfully!'
         }
         failure {
             echo '❌ Pipeline failed. Check logs for issues.'
