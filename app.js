@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>✅ Node.js App is Running on Kubernetes! and CI/CD Pipeline Jenkins and Argo Successfully work!!!!!</h1>
+          <h1>✅ Node.js App testing results is Running on Kubernetes! and CI/CD Pipeline Jenkins and Argo Successfully work!!!!!</h1>
           <p>Visit <code>/hello</code> for a friendly greeting!</p>
         </div>
       </body>
