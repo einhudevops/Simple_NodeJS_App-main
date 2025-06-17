@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: nodejs-app
-          image: bhonebhone/simple-nodejs-app:2a26b9b
+          image: bhonebhone/simple-nodejs-app:f679bbe
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
