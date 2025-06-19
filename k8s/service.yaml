@@ -9,6 +9,6 @@ spec:
     - protocol: TCP
       port: 80               # The port that the service will expose
       targetPort: 3000       # The port that the app is running on inside the container
-      nodePort: 30080        # The external port you will access the service on (on each node)
+      nodePort: 30146        # The external port you will access the service on (on each node)
   type: NodePort            # Exposes the service on a static port on each Node
 
