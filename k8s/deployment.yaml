@@ -1,8 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nodejs-app
-  namespace: nodejs-app-ns  # ✅ Specify the namespace here
+  name: eihu-nodejs-app
+  namespace: eihu  # ✅ Specify the namespace here
 spec:
   replicas: 2  # High availability
   strategy:
@@ -16,10 +16,10 @@ spec:
   template:
     metadata:
       labels:
-        app: nodejs-app
+        app: eihu-nodejs-app
     spec:
       containers:
-        - name: nodejs-app
+        - name: eihu-nodejs-app
           image: bhonebhone/simple-nodejs-app:__TAG__  # Placeholder tag replaced by Jenkins
           imagePullPolicy: Always
           ports:
