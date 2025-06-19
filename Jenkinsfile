@@ -3,10 +3,10 @@ pipeline {
 
     environment {
         GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-        IMAGE_NAME = 'bhonebhone/simple-nodejs-app'
+        IMAGE_NAME = 'bhonebhone/eihu-simple-nodejs-app'
         IMAGE_TAG = "${GIT_COMMIT}"
         FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
-        K8S_NAMESPACE = "nodejs-app-ns"
+        K8S_NAMESPACE = "eihu"
     }
 
     stages {
@@ -54,7 +54,7 @@ pipeline {
                     sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
                     kubectl apply -n $K8S_NAMESPACE -f k8s/deployment.yaml
                     kubectl apply -n $K8S_NAMESPACE -f k8s/service.yaml
-                    kubectl rollout restart deployment/nodejs-app -n $K8S_NAMESPACE
+                    kubectl rollout restart deployment/eihu-nodejs-app -n $K8S_NAMESPACE
                 '''
             }
         }
