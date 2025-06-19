@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: eihu-nodejs-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: eihu-nodejs-app   # Ensure this matches the label below
