@@ -59,23 +59,29 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'eihudevops', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     sh '''
-                        # Replace image tag in deployment.yaml
+                        # Replace image in deployment.yaml
                         sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-
-                        # Configure Git identity
+        
+                        # Git config
                         git config --global user.email "jenkins@ci.local"
                         git config --global user.name "Jenkins CI"
-
-                        # Commit and push the update
+        
+                        # Ensure we're on main branch
+                        git checkout main || git checkout -b main
+        
+                        # Pull latest changes to avoid non-fast-forward error
+                        git pull origin main --rebase
+        
+                        # Commit and push
                         git add k8s/deployment.yaml
                         git commit -m "Update image to $FULL_IMAGE" || echo "No changes to commit"
                         git remote set-url origin https://$GIT_USER:$GIT_TOKEN@github.com/einhudevops/Simple_NodeJS_App-main.git
-                        git push origin HEAD:main
+                        git push origin main
                     '''
                 }
             }
         }
-    }
+
 
     post {
         success {
