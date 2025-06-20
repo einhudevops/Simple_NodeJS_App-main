@@ -2,14 +2,12 @@ pipeline {
     agent any
 
     environment {
-        GIT_COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         IMAGE_NAME = 'bhonebhone/eihu-simple-nodejs-app'
-        IMAGE_TAG = "${GIT_COMMIT}"
-        FULL_IMAGE = "${IMAGE_NAME}:${IMAGE_TAG}"
         K8S_NAMESPACE = "eihu"
     }
-    
-     stage('Set Image Tag') {
+
+    stages {
+        stage('Set Image Tag') {
             steps {
                 script {
                     def commit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
@@ -18,8 +16,7 @@ pipeline {
                 }
             }
         }
-    
-    stages {
+
         stage('Check K8s Connection') {
             steps {
                 sh 'kubectl get nodes'
@@ -58,18 +55,7 @@ pipeline {
             }
         }
 
-    //     stage('Deploy to Kubernetes') {
-    //         steps {
-    //             sh '''
-    //                 sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-    //                 kubectl apply -n $K8S_NAMESPACE -f k8s/deployment.yaml
-    //                 kubectl apply -n $K8S_NAMESPACE -f k8s/service.yaml
-    //                 kubectl rollout restart deployment/eihu-nodejs-app -n $K8S_NAMESPACE
-    //             '''
-    //         }
-    //     }
-    // }
-    stage('Update YAML and Push to GitHub (Trigger ArgoCD)') {
+        stage('Update YAML and Push to GitHub (Trigger ArgoCD)') {
             steps {
                 withCredentials([string(credentialsId: 'eihudevops', variable: 'EI_TOKEN')]) {
                     sh '''
@@ -90,7 +76,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Deployed to Kubernetes namespace successfully.'
+            echo '✅ Python Application Deployed to Kubernetes namespace successfully.'
         }
         failure {
             echo '❌ Deployment failed.'
