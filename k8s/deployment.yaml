@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: eihu-nodejs-app
-          image: bhonebhone/eihu-simple-nodejs-app:d07343d
+          image: bhonebhone/eihu-simple-nodejs-app:c69075c
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
