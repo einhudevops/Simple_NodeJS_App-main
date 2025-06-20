@@ -56,32 +56,33 @@ pipeline {
         }
 
         stage('Update YAML and Push to GitHub (Trigger ArgoCD)') {
-        steps {
-            withCredentials([usernamePassword(credentialsId: 'eihudevops', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                sh '''
-                    # Replace image tag in deployment.yaml
-                    sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
-    
-                    # Configure Git identity
-                    git config --global user.email "jenkins@ci.local"
-                    git config --global user.name "Jenkins CI"
-    
-                    # Commit and push the update
-                    git add k8s/deployment.yaml
-                    git commit -m "Update image to $FULL_IMAGE" || echo "No changes to commit"
-                    git remote set-url origin https://$GIT_USER:$GIT_TOKEN@github.com/einhudevops/Simple_NodeJS_App-main.git
-                    git push origin HEAD:main
-                '''
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'eihudevops', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    sh '''
+                        # Replace image tag in deployment.yaml
+                        sed -i "s|image:.*|image: $FULL_IMAGE|" k8s/deployment.yaml
+
+                        # Configure Git identity
+                        git config --global user.email "jenkins@ci.local"
+                        git config --global user.name "Jenkins CI"
+
+                        # Commit and push the update
+                        git add k8s/deployment.yaml
+                        git commit -m "Update image to $FULL_IMAGE" || echo "No changes to commit"
+                        git remote set-url origin https://$GIT_USER:$GIT_TOKEN@github.com/einhudevops/Simple_NodeJS_App-main.git
+                        git push origin HEAD:main
+                    '''
+                }
             }
         }
     }
 
     post {
         success {
-            echo '✅ Python Application Deployed to Kubernetes namespace successfully.'
+            echo '✅ Node.js application deployed and Git updated successfully.'
         }
         failure {
             echo '❌ Deployment failed.'
         }
     }
-}
+} // 👈 MISSING closing brace added here
