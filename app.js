@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
       </head>
       <body>
         <div class="container">
-          <h1>✅ Python App "Version - 7 "is Running on Kubernetes!</h1>
+          <h1>✅ Python App "Version - 8 "is Running on Kubernetes!</h1>
           <p>Visit <code>/hello</code> for a friendly greeting!</p>
         </div>
       </body>
